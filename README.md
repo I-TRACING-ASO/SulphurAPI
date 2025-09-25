@@ -9,7 +9,7 @@ Check out the latest [Release](https://github.com/I-TRACING-ASO/SulphurAPI/relea
 ### Build & Run
 ```zsh
 # Clone repo
-git clone https://github.com/your-org/your-repo.git
+git clone https://github.com/I-TRACING-ASO/SulphurAPI.git
 cd your-repo
 
 # Build
