@@ -1,0 +1,222 @@
+classDiagram
+    namespace core {
+        class SulphurAPIExtension {
+            +initialize(MontoyaApi) void
+        }
+        
+        class SAPI {
+            -MontoyaApi INSTANCE
+            -OpenAPI LOADEDAPI
+            -JPanel UIPanel
+            -ControlPanel controlPanel
+            +getAPI() MontoyaApi
+            +getLoadedAPI() OpenAPI
+            +getUIPanel() JPanel
+            +initAPI(MontoyaApi) void
+            +loadAPI(OpenAPI) void
+            +loadUIPanel(JPanel) void
+            +loadControlPanel(ControlPanel) void
+            +getDebugMode() Boolean
+            +logInfo(String) void
+            +logError(String) void
+        }
+    }
+    
+    namespace interfaces {
+        class GUIActionInterface {
+            <<interface>>
+            +runAsyncAction(Runnable, String) void
+            +runAsyncLightAction(Runnable) void
+        }
+    }
+    
+    namespace structure {
+        class GUIManager {
+            -JPanel ui
+            -JButton selectFileButton
+            -JTextField pathField
+            -JLabel labelField
+            -JTabbedPane tabbedPane1
+            -EndpointGrid endpoints
+            -BulkGrid users
+            -AuthGrid auth
+            +GUIManager()
+            +getUi() Component
+            +getEndpoints() EndpointGrid
+            +getAuth() AuthGrid
+            +getUsers() BulkGrid
+        }
+        
+        class APILoader {
+            -String fileLoadedPath
+            -SwaggerReader loadedAPI
+            -GUIManager guiManager
+            -EndpointsHandler endpointsHandler
+            -SchemaHandler schemaHandler
+            -SecurityHandler securityHandler
+            +APILoader(GUIManager, JTextField)
+            +getEndpointsHandler() EndpointsHandler
+            +getSchemaHandler() SchemaHandler
+            +getSecurityHandler() SecurityHandler
+            +getGuiManager() GUIManager
+        }
+        
+        class EndpointGrid {
+            -JPanel mainPanel
+            -JList~String~ endpointList
+            -JTextArea endpointsRequestTextArea
+            -JTextArea endpointsResponseTextArea
+            -JButton endpointsSendRequestButton
+            -CustomEditorTable parametersTable
+            -JComboBox~String~ mediaTypeComboBox
+            +EndpointGrid(JPanel)
+            +getEndpointList() JList~String~
+            +getParametersTable() CustomEditorTable
+            +resetUI() void
+        }
+        
+        class AuthGrid {
+            -JPanel mainPanel
+            -JList~String~ authSchemes
+            -JTextArea logArea
+            -JButton tokenUrl
+            -JTextField apiKeyField
+            +AuthGrid(JPanel)
+            +getAuthSchemesList() JList~String~
+            +getLogArea() JTextArea
+            +getApiKeyField() JTextField
+            +resetUI() void
+        }
+        
+        class BulkGrid {
+            -JPanel mainPanel
+            -JComboBox~String~ parametersList
+            -JList~String~ parametersValuesList
+            -Map~String, ListModel~ parametersValuesMap
+            -JTable table
+            -JButton sendBulkButton
+            -JButton loadEndpointButton
+            +BulkGrid(JPanel)
+            +updateComboBox(Vector~String~) void
+            +getParametersValuesMap() Map
+            +resetUI() void
+        }
+    }
+    
+    namespace handlers {
+        class EndpointsHandler {
+            -Paths paths
+            -JPopupMenu menu
+            -EndpointGrid grid
+            -Map~String, Schema~ propertiesMap
+            -String currentLoadedPath
+            -Map~String, Parameter~ parametersMap
+            -ContentTypeHandler contentTypeHandler
+            -String selectedServer
+            +EndpointsHandler(APILoader)
+            +getSelectedEndpointURL() String
+            +createSubMenu() JMenu
+            +fillPropertiesMapFromOperation(Operation) void
+            +getSelectedMediaType() String
+        }
+        
+        class EndpointsActionsHandler {
+            -ReadWriteLock lock
+            +getActionHandler(String, String, JTextArea, JTextArea, String, List~String~) void
+        }
+        
+        class SecurityHandler {
+            -HashMap~String, SecurityScheme~ securityRequirements
+            -String selectedSecurityScheme
+            -AuthGrid authGrid
+            -APILoader apiLoader
+            +MutableTriple~In, String, String~ APIKeyData
+            +SecurityHandler(APILoader)
+            +getSelectedSecurityScheme() String
+            +getCurrentSecurityScheme() SecurityScheme
+            +clearSecurityRequirements() void
+        }
+        
+        class RequestHandler {
+            -String url
+            -String method
+            -String body
+            -List~String~ headers
+            -HttpRequestResponse response
+            +RequestHandler(String, String, String, List~String~)
+            +run() void
+            +getRequestResponse() HttpRequestResponse
+        }
+        
+        class ContentTypeHandler {
+            +calculateBody(JSONObject, String) String
+        }
+        
+        class SchemaHandler {
+            +getSchemaFromContent(Content, String) Schema
+        }
+        
+        class UnloadingHandler {
+            -HTTPHandler handler
+            +UnloadingHandler(HTTPHandler)
+        }
+    }
+    
+    namespace utils {
+        class SwaggerReader {
+            -String path
+            -OpenAPI parsedAPI
+            +SwaggerReader(String)
+            +getParsedAPI() OpenAPI
+        }
+        
+        class StringParser {
+        }
+    }
+    
+    namespace settings {
+        class ControlPanel {
+            -SettingsPanelWithData settingsPanelWithData
+            +ControlPanel()
+            +getSettingsPanel() SettingsPanelWithData
+            +getDebugMode() Boolean
+        }
+    }
+    
+    namespace exceptions {
+        class IllegalUrlException {
+        }
+    }
+    
+    %% Relations
+    SulphurAPIExtension ..> SAPI : uses
+    SulphurAPIExtension ..> GUIManager : creates
+    SulphurAPIExtension ..> ControlPanel : creates
+    
+    GUIManager ..|> GUIActionInterface : implements
+    GUIManager *-- EndpointGrid : contains
+    GUIManager *-- AuthGrid : contains
+    GUIManager *-- BulkGrid : contains
+    GUIManager ..> APILoader : creates
+    
+    APILoader ..|> GUIActionInterface : implements
+    APILoader *-- SwaggerReader : contains
+    APILoader *-- EndpointsHandler : creates
+    APILoader *-- SchemaHandler : creates
+    APILoader *-- SecurityHandler : creates
+    
+    EndpointsHandler ..|> GUIActionInterface : implements
+    EndpointsHandler ..> EndpointsActionsHandler : uses
+    EndpointsHandler ..> ContentTypeHandler : uses
+    
+    EndpointsActionsHandler ..> RequestHandler : creates
+    
+    SecurityHandler o-- AuthGrid : references
+    SecurityHandler o-- APILoader : references
+    
+    RequestHandler ..|> GUIActionInterface : implements
+    RequestHandler ..> SecurityHandler : uses
+    
+    SwaggerReader ..> SAPI : uses
+    
+    SAPI ..> ControlPanel : references
